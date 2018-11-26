@@ -60,9 +60,6 @@ func Exec(kickerConfPath string) {
 				}
 			}
 
-			// let's not evaluate the same pods for other strategies
-			pods = strategy.FilterPodSet(toKill)(pods)
-
 			log.Printf("completed %s strategy", sc.Name)
 		}
 
