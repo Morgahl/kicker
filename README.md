@@ -8,3 +8,6 @@ This program aims to manage misbehaving Kubernetes Deployments. Namely when they
 
 
 Also be aware that multiple Criteria pointing at the same resources can potentially cause all Pods in a Deployment to be killed at the same time.
+
+
+I am also debating that this be useable as a scheduler for Kubernetes. Strategies would have to be configurable for both modes or we'll need to pick one mode or the other. I favor both modes as it give you a quick production ready pod killer and a scheduler based solution (albeit with a bit more planning involved)
