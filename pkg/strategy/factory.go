@@ -1,4 +1,4 @@
-package eval
+package strategy
 
 import (
 	"fmt"
@@ -31,14 +31,9 @@ func NewStrategy(c conf.Criteria) (*Strategy, error) {
 		return nil, err
 	}
 
-	strat, err := stratCon(c)
-	if err != nil {
-		return nil, fmt.Errorf("error constructing '%s' strategy: %s", c.Strategy, err)
-	}
-
 	return &Strategy{
 		c:    c,
-		eval: strat,
+		eval: stratCon(c),
 	}, nil
 }
 
@@ -61,7 +56,7 @@ func NewGroup(cs []conf.Criteria) ([]*Strategy, error) {
 type Evaluator func([]v1.Pod) []v1.Pod
 
 // EvaluatorConstructor defines a constructor function for an Evaluator
-type EvaluatorConstructor func(conf.Criteria) (Evaluator, error)
+type EvaluatorConstructor func(conf.Criteria) Evaluator
 
 var strategyRegistry = map[conf.Strategy]EvaluatorConstructor{}
 var mu = &sync.RWMutex{}

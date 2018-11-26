@@ -1,4 +1,4 @@
-package eval
+package strategy
 
 import (
 	"strings"
@@ -6,25 +6,9 @@ import (
 	"k8s.io/api/core/v1"
 )
 
-// Filter defines a function that return true if the evaluated pod matches criteria
+// Filter provides the core concept of a simple set of functional filters to be used as a convenience for defining your
+// own strategies
 type Filter func(v1.Pod) bool
-
-// Apply filters the recieved set of v1.Pods and returns a new slice of pods that match the filter
-func (f Filter) Apply(pl []v1.Pod) []v1.Pod {
-	if len(pl) <= 0 {
-		return nil
-	}
-
-	out := make([]v1.Pod, 0, len(pl))
-	for _, p := range out {
-		if f(p) {
-			out = append(out, p)
-		}
-	}
-
-	return out
-
-}
 
 // NameSpaceFilter matches when the passed v1.Pod.Namespace is equivalent to the passed namespace
 func NameSpaceFilter(namespace string) Filter {

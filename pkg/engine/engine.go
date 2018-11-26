@@ -6,7 +6,7 @@ import (
 
 	"github.com/curlymon/kicker/pkg/client"
 	"github.com/curlymon/kicker/pkg/conf"
-	"github.com/curlymon/kicker/pkg/eval"
+	"github.com/curlymon/kicker/pkg/strategy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // this loads the gcp plugin (only required to authenticate against GKE clusters).
 )
@@ -26,7 +26,7 @@ func Exec(kickerConfPath string) {
 		log.Fatalln(err)
 	}
 
-	strats, err := eval.NewGroup(config.Criteria)
+	strats, err := strategy.NewGroup(config.Criteria)
 	if err != nil {
 		log.Fatalln(err)
 	}
