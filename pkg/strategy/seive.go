@@ -84,9 +84,9 @@ func SortCreationTimestampAsc(pods []v1.Pod) []v1.Pod {
 	return pods
 }
 
-func OlderThen(maxAge time.Duration) Evaluator {
+func OlderThan(maxAge time.Duration) Evaluator {
 	return func(pods []v1.Pod) []v1.Pod {
-		log.Printf("OlderThen called with %d pods", len(pods))
+		log.Printf("OlderThan called with %d pods", len(pods))
 		maxT := time.Now().Add(-maxAge)
 		out := make([]v1.Pod, 0, len(pods))
 		for i := range pods {
@@ -97,7 +97,7 @@ func OlderThen(maxAge time.Duration) Evaluator {
 
 		out = out[:len(out):len(out)]
 
-		log.Printf("OlderThen exiting with %d pods", len(out))
+		log.Printf("OlderThan exiting with %d pods", len(out))
 		return out
 	}
 }
@@ -107,7 +107,7 @@ func CoolDown(cd time.Duration, seive Evaluator) Evaluator {
 	return func(pods []v1.Pod) []v1.Pod {
 		log.Printf("CoolDown called with %d pods", len(pods))
 		if time.Now().Before(cdWait) {
-			log.Println("CoolDown exiting early with 0 pods dropped")
+			log.Println("CoolDown exiting early due to cool down")
 			return nil
 		}
 
@@ -129,7 +129,7 @@ func Spread(maxAge time.Duration, seive Evaluator) Evaluator {
 		log.Printf("Spread called with %d pods", len(pods))
 		startCount := len(pods)
 		if time.Now().Before(waitUntil) && startCount <= lastCountAtKick {
-			log.Println("Spread exiting early with 0 pods dropped")
+			log.Println("Spread exiting early due to spread cool down")
 			return nil
 		}
 

@@ -35,7 +35,7 @@ func Spread(c conf.Criteria) strategy.Evaluator {
 	core := strategy.EvaluatorSeive(
 		strategy.ApplyFilter(filter),
 		strategy.SortCreationTimestampAsc,
-		strategy.OlderThen(time.Duration(c.MaxAge)*time.Second),
+		strategy.OlderThan(time.Duration(c.MaxAge)*time.Second),
 		strategy.Limit(c.Limit),
 	)
 
