@@ -1,0 +1,9 @@
+criteria:
+  - name: <strat-immediate-older-than-6h-cd-for-5m>
+    strategy: immediate
+    maxAge: 21600
+    coolDown: 300
+  - name: <start-spread-older-than-6h-cd-for-5m>
+    strategy: spread
+    maxAge: 21600
+    coolDown: 300
