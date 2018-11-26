@@ -2,6 +2,7 @@ package strategy
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/curlymon/kicker/pkg/conf"
@@ -20,8 +21,9 @@ func (s *Strategy) Criteria() conf.Criteria {
 }
 
 // Evaluate performs the evaluation defined by the conf.Criteria used to create this Strategy
-func (s *Strategy) Evaluate(ps []v1.Pod) []v1.Pod {
-	return s.eval(ps)
+func (s *Strategy) Evaluate(pods []v1.Pod) []v1.Pod {
+	log.Printf("Evaluate called with %d pods", len(pods))
+	return s.eval(pods)
 }
 
 // NewStrategy builds and returns a new Strategy for the provided conf.Criteria, returning an error if unable to do so.

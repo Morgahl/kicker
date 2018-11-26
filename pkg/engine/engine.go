@@ -32,16 +32,21 @@ func Exec(kickerConfPath string) {
 	}
 
 	for {
-		pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
+		podList, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		log.Printf("There are %d pods in the cluster\n", len(pods.Items))
+		pods := podList.Items
+
+		log.Printf("There are %d pods in the cluster\n", len(pods))
 		log.Printf("Running %d strategies...\n", len(strats))
 
 		for _, strat := range strats {
-			for _, pod := range strat.Evaluate(pods.Items) {
+			sc := strat.Criteria()
+			log.Printf("running %s strategy...", sc.Name)
+			toKill := strat.Evaluate(pods)
+			for _, pod := range toKill {
 				log.Printf("kicking: %s...\n", pod.Name)
 				criteria := strat.Criteria()
 				fore := metav1.DeletePropagationForeground
@@ -51,12 +56,17 @@ func Exec(kickerConfPath string) {
 				}
 				err := clientset.CoreV1().Pods(criteria.Namespace).Delete(pod.Name, opts)
 				if err != nil {
-					log.Printf("error kicking pod '%s': %s\n", pod.Name, err)
+					log.Printf("error kicking pod '%s': %s", pod.Name, err)
 				}
 			}
+
+			// let's not evaluate the same pods for other strategies
+			pods = strategy.FilterPodSet(toKill)(pods)
+
+			log.Printf("completed %s strategy", sc.Name)
 		}
 
-		log.Printf("sleeping for %s\n", interval)
+		log.Printf("sleeping for %s", interval)
 		time.Sleep(interval)
 	}
 }
