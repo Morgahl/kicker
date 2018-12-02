@@ -24,24 +24,29 @@ func init() {
 // scheduler thrash. An additional cooldown is triggered for (conf.Criteria.MaxAge / podCount), this cooldown is ignored
 // if the pod count is higher then the last count at pod kick
 func Spread(c conf.Criteria) strategy.Evaluator {
-	// fiter out non matching and unhealthy pods
+	// build a logic core that assumes filtered pods
+	core := strategy.EvaluatorSeive(
+		strategy.SortCreationTimestampAsc,
+		strategy.OlderThan(time.Duration(c.MaxAge)*time.Second),
+		strategy.Limit(c.Limit),
+	)
+
+	// wrap core with Spread strategy
+	spread := strategy.Spread(time.Duration(c.MaxAge)*time.Second, core)
+
+	// build a filter top remove all non matching and unhealthy pods
 	filter := strategy.And(
 		strategy.NamePrefixFilter(c.Name),
 		strategy.NameSpaceFilter(c.Namespace),
 		strategy.StatusFilter(v1.PodRunning),
 	)
 
-	// combine into a logic core
-	core := strategy.EvaluatorSeive(
+	// setup prefilter
+	prefilter := strategy.EvaluatorSeive(
 		strategy.ApplyFilter(filter),
-		strategy.SortCreationTimestampAsc,
-		strategy.OlderThan(time.Duration(c.MaxAge)*time.Second),
-		strategy.Limit(c.Limit),
+		spread,
 	)
 
-	// wrap logic core with Spread strategy
-	spread := strategy.Spread(time.Duration(c.MaxAge)*time.Second, core)
-
-	// wrap Spread strategy with cooldown
-	return strategy.CoolDown(time.Duration(c.CoolDown)*time.Second, spread)
+	// wrap prefilter strategy with cooldown
+	return strategy.CoolDown(time.Duration(c.CoolDown)*time.Second, prefilter)
 }

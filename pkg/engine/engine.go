@@ -13,7 +13,7 @@ import (
 
 // Exec runs the program using the config defined at the kickerConfPath. If kickerConfPath is left empty it will attempt
 // load from the environment.
-func Exec(kickerConfPath string) {
+func Exec(kickerConfPath string, dryRun bool) {
 	config, err := conf.LoadConf(kickerConfPath)
 	if err != nil {
 		log.Fatalln(err)
@@ -48,14 +48,18 @@ func Exec(kickerConfPath string) {
 			toKill := strat.Evaluate(pods)
 			for _, pod := range toKill {
 				log.Printf("kicking: %s...\n", pod.Name)
+				if dryRun {
+					continue
+				}
+
 				criteria := strat.Criteria()
 				fore := metav1.DeletePropagationForeground
 				opts := &metav1.DeleteOptions{
 					PropagationPolicy:  &fore,
 					GracePeriodSeconds: &criteria.GracePeriod,
 				}
-				err := clientset.CoreV1().Pods(criteria.Namespace).Delete(pod.Name, opts)
-				if err != nil {
+
+				if err := clientset.CoreV1().Pods(criteria.Namespace).Delete(pod.Name, opts); err != nil {
 					log.Printf("error kicking pod '%s': %s", pod.Name, err)
 				}
 			}

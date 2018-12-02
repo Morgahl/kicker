@@ -52,7 +52,7 @@ func FilterPodSet(filterSet []v1.Pod) Evaluator {
 	}
 }
 
-// ApplyFilter returns a seive that filters a set of v1.Pods and returns a new slice of pods that match the filter.
+// ApplyFilter returns a eval that filters a set of v1.Pods and returns a new slice of pods that match the filter.
 func ApplyFilter(filter Filter) Evaluator {
 	return func(pods []v1.Pod) []v1.Pod {
 		log.Printf("ApplyFilter called with %d pods", len(pods))
@@ -102,7 +102,7 @@ func OlderThan(maxAge time.Duration) Evaluator {
 	}
 }
 
-func CoolDown(cd time.Duration, seive Evaluator) Evaluator {
+func CoolDown(cd time.Duration, eval Evaluator) Evaluator {
 	cdWait := time.Time{}
 	return func(pods []v1.Pod) []v1.Pod {
 		log.Printf("CoolDown called with %d pods", len(pods))
@@ -111,7 +111,7 @@ func CoolDown(cd time.Duration, seive Evaluator) Evaluator {
 			return nil
 		}
 
-		pods = seive(pods)
+		pods = eval(pods)
 
 		if len(pods) > 0 {
 			cdWait = time.Now().Add(cd)
@@ -122,22 +122,22 @@ func CoolDown(cd time.Duration, seive Evaluator) Evaluator {
 	}
 }
 
-func Spread(maxAge time.Duration, seive Evaluator) Evaluator {
+func Spread(maxAge time.Duration, eval Evaluator) Evaluator {
 	waitUntil := time.Time{}
-	lastCountAtKick := -1
 	return func(pods []v1.Pod) []v1.Pod {
 		log.Printf("Spread called with %d pods", len(pods))
-		startCount := len(pods)
-		if time.Now().Before(waitUntil) && startCount <= lastCountAtKick {
+		if time.Now().Before(waitUntil) {
 			log.Println("Spread exiting early due to spread cool down")
 			return nil
 		}
 
-		pods = seive(pods)
+		log.Printf("Spread maxAge: %s", maxAge)
+		maxT := maxAge / time.Duration(len(pods))
+		log.Printf("Spread maxT(%s) = %s/%d", maxT, maxAge, len(pods))
+		pods = eval(pods)
 
 		if len(pods) > 0 {
-			waitUntil = time.Now().Add(maxAge / time.Duration(startCount))
-			lastCountAtKick = len(pods)
+			waitUntil = time.Now().Add(maxT)
 		}
 
 		log.Printf("Spread exiting with %d pods", len(pods))

@@ -12,7 +12,7 @@ import (
 // Strategy is an object used to statefully evaluate a set of v1.Pod for to be kicked
 type Strategy struct {
 	c    conf.Criteria
-	eval func([]v1.Pod) []v1.Pod
+	eval Evaluator
 }
 
 // Criteria return the conf.Criteria used to create this Strategy
@@ -23,7 +23,9 @@ func (s *Strategy) Criteria() conf.Criteria {
 // Evaluate performs the evaluation defined by the conf.Criteria used to create this Strategy
 func (s *Strategy) Evaluate(pods []v1.Pod) []v1.Pod {
 	log.Printf("Evaluate called with %d pods", len(pods))
-	return s.eval(pods)
+	pods = s.eval(pods)
+	log.Printf("Evaluate exiting with %d pods", len(pods))
+	return pods
 }
 
 // NewStrategy builds and returns a new Strategy for the provided conf.Criteria, returning an error if unable to do so.

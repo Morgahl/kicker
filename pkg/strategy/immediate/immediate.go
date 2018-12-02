@@ -22,21 +22,26 @@ func init() {
 // until conf.Criteria.Limit is reached.
 // If a pod is kicked, a cooldown for re-evaluation is triggered with a length of conf.Criteria.CoolDown.
 func Immediate(c conf.Criteria) strategy.Evaluator {
-	// fiter out non matching and unhealthy pods
+	// build a logic core that assumes filtered pods
+	core := strategy.EvaluatorSeive(
+		strategy.SortCreationTimestampAsc,
+		strategy.OlderThan(time.Duration(c.MaxAge)*time.Second),
+		strategy.Limit(c.Limit),
+	)
+
+	// build a filter top remove all non matching and unhealthy pods
 	filter := strategy.And(
 		strategy.NamePrefixFilter(c.Name),
 		strategy.NameSpaceFilter(c.Namespace),
 		strategy.StatusFilter(v1.PodRunning),
 	)
 
-	// combine into a logic core
-	core := strategy.EvaluatorSeive(
+	// setup prefilter
+	prefilter := strategy.EvaluatorSeive(
 		strategy.ApplyFilter(filter),
-		strategy.SortCreationTimestampAsc,
-		strategy.OlderThan(time.Duration(c.MaxAge)*time.Second),
-		strategy.Limit(c.Limit),
+		core,
 	)
 
-	// wrap Spread strategy with cooldown
-	return strategy.CoolDown(time.Duration(c.CoolDown)*time.Second, core)
+	// wrap prefilter strategy with cooldown
+	return strategy.CoolDown(time.Duration(c.CoolDown)*time.Second, prefilter)
 }
