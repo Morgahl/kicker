@@ -114,6 +114,7 @@ func CoolDown(cd time.Duration, eval Evaluator) Evaluator {
 		pods = eval(pods)
 
 		if len(pods) > 0 {
+			log.Printf("CoolDown setting cool down for %s", cd)
 			cdWait = time.Now().Add(cd)
 		}
 
@@ -131,12 +132,11 @@ func Spread(maxAge time.Duration, eval Evaluator) Evaluator {
 			return nil
 		}
 
-		log.Printf("Spread maxAge: %s", maxAge)
 		maxT := maxAge / time.Duration(len(pods))
-		log.Printf("Spread maxT(%s) = %s/%d", maxT, maxAge, len(pods))
 		pods = eval(pods)
 
 		if len(pods) > 0 {
+			log.Printf("Spread setting cool down for %s", maxT)
 			waitUntil = time.Now().Add(maxT)
 		}
 
