@@ -42,9 +42,6 @@ func (c *Conf) validate() error {
 }
 
 const (
-	// DefaultNamespace is the namespace used if one is not provided in a Criteria Object
-	DefaultNamespace = "default"
-
 	// DefaultMaxAge is default MaxAge in seconds if one is not provided in a Criteria Object
 	DefaultMaxAge = 86400
 
@@ -102,7 +99,7 @@ func (c *Criteria) validate() error {
 	}
 
 	if c.Namespace == "" {
-		c.Namespace = DefaultNamespace
+		return fmt.Errorf("Criteria must have a Namespace")
 	}
 
 	if c.MinAge <= 0 {
