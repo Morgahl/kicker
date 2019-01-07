@@ -145,6 +145,30 @@ func Spread(maxAge time.Duration, eval Evaluator) Evaluator {
 	}
 }
 
+func SpreadFast(maxAge time.Duration, limit int64, eval Evaluator) Evaluator {
+	lastEvict := time.Time{}
+	return func(pods []v1.Pod) []v1.Pod {
+		log.Printf("SpreadFast called with %d pods", len(pods))
+		minAge := maxAge / time.Duration(len(pods))
+		if time.Now().Before(lastEvict.Add(minAge)) {
+			log.Println("SpreadFast exiting early due to spread cool down")
+			return nil
+		}
+
+		pods = eval(pods)
+		pods = OlderThan(minAge)(pods) // this prevents this from firing as soon as this strategy is first run, unless we actually HAVE a pod elidgeable.
+		pods = Limit(limit)(pods)
+
+		if len(pods) > 0 {
+			log.Printf("SpreadFast setting cool down for %s", minAge)
+			lastEvict = time.Now()
+		}
+
+		log.Printf("SpreadFast exiting with %d pods", len(pods))
+		return pods
+	}
+}
+
 func Limit(limit int64) Evaluator {
 	return func(pods []v1.Pod) []v1.Pod {
 		log.Printf("Limit called with %d pods", len(pods))

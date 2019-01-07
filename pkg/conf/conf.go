@@ -49,7 +49,7 @@ const (
 	DefaultMinAge = 90
 
 	// DefaultStrategy is the default Strategy if one is not provided in a Criteria Object
-	DefaultStrategy = StrategySpread
+	DefaultStrategy = StrategySpreadFast
 
 	// DefaultLimit is the default Limit is one is not provided in a Criteria Object
 	DefaultLimit = 1
@@ -140,6 +140,9 @@ const (
 	// StrategySpread attempts to spread out the kicking of pods to a evenly distributed schedule within the provided
 	// MaxAge. Keep in mind that pods with ages closer then count/MaxAge may exist longer then the MaxAge.
 	StrategySpread = "spread"
+	// StrategySpreadFast attempts to spread out the kicking of pods to a evenly distributed schedule within the provided
+	// MaxAge. This strategy premetivly kills the oldest pod once beyond a given minimum age.
+	StrategySpreadFast = "spreadfast"
 	// StrategyImmediate kicks any pod that is over MaxAge regardless of the state of other pods. This is a fairly
 	// drastic approach and should be used with caution.
 	StrategyImmediate = "immediate"
